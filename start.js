@@ -9,89 +9,89 @@ const notify = (notification, duration) => GetRootScope().addNotification(notifi
 const generateRandomVolatility = () => (0.99 / (Math.random() * 0.99 + 0.01)) / 100
 
 const generateDailyStockPrice = (oldPrice, volatility) => {
-	const seed = Math.random() - 0.5
+    const seed = Math.random() - 0.5
 
-	let changePercent = 2 * volatility * seed
+    let changePercent = 2 * volatility * seed
 
-	const changeAmount = oldPrice * changePercent
+    const changeAmount = oldPrice * changePercent
 
-	const newPrice = oldPrice + changeAmount
+    const newPrice = oldPrice + changeAmount
 
-	return newPrice
+    return newPrice
 }
 
 const setInitialStockValues = () => {
-	log("Setting initial price values")
-	const competitors = GetRootScope().settings.competitorProducts
+    log("Setting initial price values")
+    const competitors = GetRootScope().settings.competitorProducts
 
-	for(let i = 0; i < competitors.length - 1; i++) {
-		const competitor = competitors[i]
+    for(let i = 0; i < competitors.length - 1; i++) {
+        const competitor = competitors[i]
 
-		const { history, name } = competitor
+        const { history, name } = competitor
 
-		const startingPrice = history[0].stockPrice
-		
-		const stockVolatility = generateRandomVolatility()
+        const startingPrice = history[0].stockPrice
+        
+        const stockVolatility = generateRandomVolatility()
 
-		competitor.stockVolatility = stockVolatility
+        competitor.stockVolatility = stockVolatility
 
-		for(let n = 0; n <= history.length - 1; n++) {
+        for(let n = 0; n <= history.length - 1; n++) {
 
-			let oldPrice = startingPrice
+            let oldPrice = startingPrice
 
-			if (n !== 0) {
-				const oldPrice = history[n-1].stockPrice
-			}
+            if (n !== 0) {
+                const oldPrice = history[n-1].stockPrice
+            }
 
-			const newPrice = generateDailyStockPrice(oldPrice, stockVolatility)
+            const newPrice = generateDailyStockPrice(oldPrice, stockVolatility)
 
-			history[n].stockPrice = newPrice
-		}
-	}
+            history[n].stockPrice = newPrice
+        }
+    }
 }
 
 const updateStockPrices = competitors => {
-	for(let i = 0; i < competitors.length - 1; i++) {
-		const competitor = competitors[i]
+    for(let i = 0; i < competitors.length - 1; i++) {
+        const competitor = competitors[i]
 
-		const { history, name, stockVolatility } = competitor
+        const { history, name, stockVolatility } = competitor
 
-		const oldPrice = history[history.length - 2].stockPrice
+        const oldPrice = history[history.length - 2].stockPrice
 
-		const newPrice = generateDailyStockPrice(oldPrice, stockVolatility)
+        const newPrice = generateDailyStockPrice(oldPrice, stockVolatility)
 
-		log(`Setting new price for ${name}: ${newPrice}`)
+        log(`Setting new price for ${name}: ${newPrice}`)
 
-		history[history.length -1].stockPrice = newPrice
-	}
+        history[history.length -1].stockPrice = newPrice
+    }
 }
 
 const eachDay = () => {
-	Helpers.UpdateCompetitors()
+    Helpers.UpdateCompetitors()
 
-	notify("Updating Stock Prices...")
+    notify("Updating Stock Prices...")
 
-	const competitors = GetRootScope().settings.competitorProducts
+    const competitors = GetRootScope().settings.competitorProducts
 
-	updateStockPrices(competitors)
+    updateStockPrices(competitors)
 }
 
 exports.initialize = modPath => {
-	modPath = modPath
+    modPath = modPath
 
-	log("Initializing")
+    log("Initializing")
 }
 
 exports.onLoadGame = settings => {
-	if (settings) {
-		setInitialStockValues()
-	}
+    if (settings) {
+        setInitialStockValues()
+    }
 }
 
 exports.onNewDay = () => eachDay()
 
 exports.onUnsubscribe = done => {
-	delete scope.options.stockEmulator
-	scope.saveOptions()
-	done()
+    delete scope.options.stockEmulator
+    scope.saveOptions()
+    done()
 }
